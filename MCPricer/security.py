@@ -1,7 +1,8 @@
 
+import abc
 from typing import Dict
 from .const import SecurityType
-from .date import Date
+from .date import Date, RDate
 from . import cashflow as cf
 
 
@@ -16,13 +17,26 @@ class Index:
         self.name = name
 
 
-class Security:
+class Schedule:
+    def __init__(self, end_date, rdate: RDate):
+        self.end_date = end_date
+        self.rdate = rdate
+
+    def set_pricing_date(self, pricing_date: Date):
+        pass
+
+
+class Security(abc.ABC):
     def __init__(self, security_type, cashflows: Dict[Date, cf.Cashflow]):
         self.security_type = security_type
         # schedule is the dates of event that are known as of today
         # to be differentiate with event_dates which can be added by the pricer to improve accuracy
         self.cashflows = cashflows
         self.schedule = sorted(self.cashflows.keys())
+
+    @abc.abstractmethod
+    def set_pricing_date(self, pricing_date: Date):
+        pass
 
     def __str__(self):
         text = ''
@@ -42,3 +56,12 @@ class EuropeanOption(Security):
         self.strike = strike
         cashflows = {expiry: cf.Max(cf.Equity(asset) - strike, 0)}
         super(EuropeanOption, self).__init__(SecurityType.EuropeanOption, cashflows=cashflows)
+
+
+class BarrierOption(Security):
+    def __init__(self, asset: str, expiry: Date, strike: float, do: float):
+        alive = cf.Constant(1)
+        cashflow = {
+
+        }
+        super(BarrierOption, self).__init__(SecurityType.BarrierOption)

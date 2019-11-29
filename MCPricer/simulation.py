@@ -7,10 +7,11 @@ from .const import Denominated
 
 
 class Engine(abc.ABC):
-    def __init__(self, model_name, dates: np.ndarray, equities=None, rates=None, fxs=None):
+    def __init__(self, model_name, dates: np.ndarray, num_paths=10000, equities=None, rates=None, fxs=None):
         self.model_name = model_name
         indices = np.arange(dates.shape[0])
         self.date_map = {date: idx for date, idx in zip(dates, indices)}
+        self.num_paths = num_paths
         self.states = {}  # for storing simulated risk factors
 
         # supported risk factors
@@ -19,10 +20,10 @@ class Engine(abc.ABC):
         self.fxs = {fx: 1 for fx in fxs} if fxs is not None else {}
 
     @abc.abstractmethod
-    def simulate(self, dates: np.ndarray, num_paths=10000):
+    def simulate(self, dates: np.ndarray):
         pass
 
-    def get_equity(self, name, date: Date):
+    def get_equity(self, name, date: Date) -> np.ndarray:
         raise ValueError(f'Equity is not supported in {self.model_name}')
 
     def get_rate(self, name, date: Date):
@@ -33,6 +34,17 @@ class Engine(abc.ABC):
 
     def get_numeraire(self, fixing_date: Date, target_date: Date):
         raise ValueError(f'Discounting is not supported in {self.model_name}')
+
+    def __hash__(self):
+        return hash(self.model_name)
+
+    def __eq__(self, other):
+        return self.model_name == other.model_name
+
+
+class DummyEngine(Engine):
+    def simulate(self, dates: np.ndarray):
+        pass
 
 
 class BlackScholes(Engine):

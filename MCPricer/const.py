@@ -5,6 +5,7 @@ from enum import Enum
 class SecurityType(Enum):
     EuropeanOption = 'opt'
     AmericanOption = 'am_opt'
+    BarrierOption = 'b_opt'
 
 
 class IndexType(Enum):
